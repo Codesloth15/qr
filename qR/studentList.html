@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="dashbord-container">
+    
+      <div class="btn-container">
+        <div class="header-btn-container">
+
+        </div>
+       <a href="attendace.html"><input type="submit" id="btn"  name="course" value="ADD ATTENDANCE" /></a> 
+       <a href="attendace.html"><input type="submit" id="btn"  name="course" value="ADD ATTENDANCE" /></a> 
+        <input type="submit"  id="btn"name="course" value="STUDENT LIST"  />
+
+        <input type="submit"  id="btn" name="course" />
+      </div>
+      <div id="table">
+        <div class="content-container">
+            <div id="show-attendance">
+                <label for="idToSearch">Enter ID Number:</label>
+                <input type="text" id="idToSearch" placeholder="ID Number">
+                <input type="submit" id="searchButton" name="course" value="Search" />
+                <input type="submit" id="submitdate" value="VIEW ALL STUDENT" name="course" />
+            
+            </div>
+          <div id="show-attendance">
+            <label>YEAR LEVEL (1/2/3/4)</label
+            ><input type="text" id="YEAR" placeholder="Year" name="course" />
+            <input type="submit" id="student-section" value="VIEW" name="course" />
+            <br />
+   
+          </div>
+          <label for="section">Select Section:</label>
+          <select id="section" name="section">
+            <option value="">ALL</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+          </select>
+      
+        </div>
+        <div id="tableContainer"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-analytics.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyCsSp4oljFkr_hSkYGv6Jf8z9oCzj-QE9s",
+        authDomain: "recyclerview-ba027.firebaseapp.com",
+        databaseURL: "https://recyclerview-ba027-default-rtdb.firebaseio.com",
+        projectId: "recyclerview-ba027",
+        storageBucket: "recyclerview-ba027.appspot.com",
+        messagingSenderId: "480007261017",
+        appId: "1:480007261017:web:4d8df57c02c07183e81a48",
+        measurementId: "G-XFXD7GYFWV",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+
+      import {
+        getDatabase,
+        get,
+        ref,
+        set,
+        child,
+        update,
+        remove,
+        push,
+      } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-database.js";
+
+      const db = getDatabase();
+
+      var currentDate = new Date();
+      var dateOfAttendance = document.getElementById("dateOfAttendance");
+      var date = currentDate.toISOString().split("T")[0];
+      var course = document.getElementById("courseName");
+      var name = document.getElementById("wName");
+      var btnenroll = document.getElementById("enrollbtn");
+      var submitdate = document.getElementById("submitdate");
+      var YEAR = document.getElementById("YEAR");
+      var time = document.getElementById("time");
+      var section = document.getElementById("section");
+
+      function InsertData() {
+        var studentRef = ref(db, date + "/STUDENT/FIRST");
+
+        push(studentRef, {
+          STUDENT_INFO: name.value,
+          STUDENT_COURSE: course.value,
+        })
+          .then((newChildRef) => {
+            alert("Student registered successfully with key: ");
+          })
+          .catch((err) => {
+            alert("Student registration failed: ");
+          });
+      }
+
+ 
+      submitdate.addEventListener("click", viewAllStudentsFromStudentList);
+
+      const tableContainer = document.getElementById("tableContainer");
+     
+     
+      function viewAllStudentsFromStudentList() {
+    const studentListRef = ref(db, "STUDENTLIST2");
+
+    get(studentListRef)
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                renderDataInTable(data);
+            } else {
+                console.log("No data available in STUDENTLIST");
+            }
+        })
+        .catch((error) => {
+            console.error("Error getting student list data: ", error);
+        });
+}
+
+
+
+function StudentListSection() {
+    if (!YEAR.value || !section.value) {
+        alert("Please provide both YEAR and section values.");
+        return; // Stop execution if either value is missing
+    }
+    const studentListRef = ref(db, "STUDENTLIST/"+YEAR.value+"/"+section.value);
+    get(studentListRef)
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                renderDataInTable(data);
+            } else {
+                alert("No data available in STUDENTLIST");
+            }
+        })
+        .catch((error) => {
+            console.error("Error getting student list data: ", error);
+        });
+}
+
+
+
+
+
+// Add a button or trigger to call the viewAllStudentsFromStudentList function
+
+function renderDataInTable(data) {
+    // Clear previous content
+    tableContainer.innerHTML = "";
+
+    // Create a table
+    const table = document.createElement("table");
+    table.border = "1";
+
+    // Create header row
+    const headerRow = document.createElement("tr");
+    const headers = [
+        "STUDENT_INFO",
+        "STUDENT_YEAR",
+        "STUDENT_SECTION",
+        "STUDENT_ID",
+        "Actions",
+    ]; // Updated headers
+
+    headers.forEach((header) => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        headerRow.appendChild(th);
+    });
+
+    table.appendChild(headerRow);
+
+    // Sort data alphabetically based on STUDENT_INFO
+    const sortedData = Object.entries(data).sort((a, b) => {
+        const studentInfoA = a[1].STUDENT_INFO.toUpperCase();
+        const studentInfoB = b[1].STUDENT_INFO.toUpperCase();
+
+        if (studentInfoA < studentInfoB) {
+            return -1;
+        }
+        if (studentInfoA > studentInfoB) {
+            return 1;
+        }
+        return 0;
+    });
+
+    // Create data rows
+    sortedData.forEach(([key, studentData]) => {
+        const row = document.createElement("tr");
+
+        headers.forEach((header, index) => {
+            const td = document.createElement("td");
+
+            if (header === "Actions") {
+                // Add update and delete buttons
+                const updateButton = document.createElement("button");
+                updateButton.textContent = "Update";
+                updateButton.classList.add("update-button");
+                updateButton.onclick = function () {
+                    // Implement your update logic here
+                    alert("Update clicked for key: " + key);
+                };
+
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Delete";
+                deleteButton.classList.add("delete-button");
+                deleteButton.onclick = function () {
+                    // Implement your delete logic here
+                    deleteData(key);
+                };
+
+                td.appendChild(updateButton);
+                td.appendChild(deleteButton);
+            } else {
+                td.textContent = studentData[header];
+            }
+
+            row.appendChild(td);
+        });
+
+        table.appendChild(row);
+    });
+
+    // Append the table to the container
+    tableContainer.appendChild(table);
+}
+
+
+function deleteData(dataKey) {
+    const studentRef = ref(
+        db,
+        "STUDENTLIST/" +
+        YEAR.value +
+        "/" +
+        section.value +
+        "/" +
+        dataKey
+    );
+
+    // Remove data from Firebase
+    remove(studentRef)
+        .then(() => {
+            alert("Student deleted successfully with key: " + dataKey);
+
+            // Remove the corresponding row from the table
+            viewAllStudentsFromStudentList();
+        })
+        .catch((error) => {
+            console.error("Error deleting data: ", error);
+        });
+}
+
+function searchById() {
+    var idToSearch = document.getElementById("idToSearch").value; // Get the value of the input field
+
+    const studentRef = ref(db, "STUDENTLIST2");
+
+    get(studentRef)
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                console.log("Data from STUDENTLIST:", data);
+                const filteredData = filterDataById(data, idToSearch);
+                console.log("Filtered Data:", filteredData);
+                renderDataInTable(filteredData);
+            } else {
+                console.log("No data available");
+            }
+        })
+        .catch((error) => {
+            console.error("Error getting data: ", error);
+        });
+}
+
+function filterDataById(data, idToSearch) {
+    const filteredData = {};
+    for (const key in data) {
+        const studentData = data[key];
+        if (studentData.STUDENT_ID === idToSearch) {
+            filteredData[key] = studentData;
+        }
+    }
+    return filteredData;
+}
+
+// ...
+
+var searchButton = document.getElementById("searchButton");
+var studentsection = document.getElementById("student-section");
+studentsection.addEventListener("click",StudentListSection);
+searchButton.addEventListener("click", searchById);
+
+    </script>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+      }
+
+      th {
+        background-color: #f2f2f2;
+      }
+      form {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 16px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      input[type="submit"] {
+        background-color: #4caf50;
+        color: #fff;
+        cursor: pointer;
+
+      }
+
+      input[type="submit"]:hover {
+        background-color: #45a049;
+      }
+      button {
+        padding: 8px;
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+        margin-right: 4px;
+      }
+
+      .update-button {
+        background-color: #0098fd;
+
+        color: #fff;
+      }
+      .update-button:hover {
+        background-color: #0771b7;
+      }
+
+      .delete-button {
+        background-color: #d3230f;
+        color: #fff;
+      }
+      .delete-button:hover {
+        background-color: #940f00;
+      }
+      #wName,
+      #courseName,
+      #enrollbtn,
+      #dateOfAttendance,
+      #YEAR,
+      #submitdate {
+        width: 200px;
+      }
+    </style>
+  </body>
+</html>

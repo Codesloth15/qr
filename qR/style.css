@@ -1,0 +1,53 @@
+*{
+    margin: 0px;
+    padding: 2px;
+}.dashbord-container{
+    border: solid 1px rgb(177, 177, 177);
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}.btn-container{
+    margin: 0px;
+    padding: 0px;
+    width: 300px;
+    height: 765px;
+    background-color: #c2dac2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}.content-container{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height:250px;
+}#show-attendance{
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+}#table{
+     width: 100%;
+    display: flex;
+    flex-direction: column;
+}#tableContainer{
+    border: solid 0.1px ;
+}#time,#section{
+    height: 30px;
+    width: 75px;
+}.header-btn-container{
+    height: 120px;
+ }
+
+#wName,
+#courseName,
+#enrollbtn,
+#dateOfAttendance,
+#YEAR,
+#submitdate,
+#idToSearch,
+#searchButton ,#btn,#student-section{
+  width: 200px;
+}#submitdate{
+    background-color: rgb(176, 61, 61)
+}#student-section{
+    background-color: rgb(54, 54, 176);
+}
